@@ -47,6 +47,7 @@ def main(args):
     for event in events_to_remove:
         start_time = event['DTSTART'].dt
         end_time = event['DTEND'].dt
+        summary = event['SUMMARY']
 
         # Convert date-time objects to RFC3339 format
         start_time_rfc3339 = parse(start_time.isoformat()).strftime('%Y-%m-%dT%H:%M:%S.%f%z')
@@ -58,10 +59,11 @@ def main(args):
                                               orderBy='startTime').execute()
         matching_events = events_result.get('items', [])
 
-        # Delete the matching events
+        # Delete the matching events with the same summary
         for matching_event in matching_events:
-            service.events().delete(calendarId=calendar_id, eventId=matching_event['id']).execute()
-            print(f"Deleted event '{matching_event['summary']}' with ID '{matching_event['id']}'")
+            if matching_event['summary'] == summary:
+                service.events().delete(calendarId=calendar_id, eventId=matching_event['id']).execute()
+                print(f"Deleted event '{matching_event['summary']}' with ID '{matching_event['id']}'")
 
     print('All events from the .ics file have been removed from the Google Calendar.')
 
